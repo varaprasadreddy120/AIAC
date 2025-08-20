@@ -1,0 +1,7 @@
+Name: Rakesh
+Age: 27
+Email (masked): r****h@gmail.com
+Email (hashed): 7c665e722a4bb8ec611e618dc12f8295a2e59cb1746c2b61b71e9de2fefa9d15
+Phone (masked): ********21
+Phone (hashed): ea9b28eb23022867bb3f2b3338b9805bda6a67f02363691d4e7ab5e48974cb80
+Address: Jangoan(D),S.Ghanpur(M),Raghavapur(V)
