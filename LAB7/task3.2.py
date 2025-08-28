@@ -1,0 +1,7 @@
+f1 = open(r"C:\Users\P.Varaprasad Reddy\OneDrive\Desktop\data1.txt", "w")
+f2 = open(r"C:\Users\P.Varaprasad Reddy\OneDrive\Desktop\data2.txt", "w")
+f1.write("First file content\n")
+f2.write("Second file content\n")
+f1.close()
+f2.close()
+print("Files written successfully.")
