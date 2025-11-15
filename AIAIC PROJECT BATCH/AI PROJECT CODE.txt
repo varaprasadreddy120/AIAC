@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Campus Room Finder with Booking Timer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(120deg, #f4f6fa 60%, #646d88 100%);
+            margin: 0;
+        }
+        #loginScreen {
+            position: fixed;
+            z-index: 10000;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(120deg, #e0e7ff 60%, #f4f6fa 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s;
+        }
+        #loginBox, #signupBox {
+            background: #fff;
+            padding: 2rem 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px #4f8cff33;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #loginBox h2, #signupBox h2 {
+            color: #2d3e50;
+            margin-bottom: 1.2rem;
+        }
+        #loginBox label, #signupBox label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4f8cff;
+            font-weight: bold;
+        }
+        #loginBox input, #signupBox input {
+            width: 100%;
+            padding: 0.6rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            border: 1.5px solid #4f8cff;
+            background: #f0f8ff;
+            font-size: 1rem;
+        }
+        #loginBtn, #signupBtn, #showSignupBtn, #showLoginBtn {
+            background: linear-gradient(90deg, #4f8cff 60%, #27ae60 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.7rem 2rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px #4f8cff33;
+            transition: background 0.2s, transform 0.2s;
+            margin-bottom: 0.5rem;
+        }
+        #loginBtn:hover, #signupBtn:hover, #showSignupBtn:hover, #showLoginBtn:hover {
+            background: linear-gradient(90deg, #27ae60 60%, #4f8cff 100%);
+            transform: scale(1.05);
+        }
+        #loginError, #signupError, #signupSuccess {
+            color: #e74c3c;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            display: none;
+        }
+        #signupSuccess {
+            color: #27ae60;
+        }
+        /* Splash styles */
+        #splashScreen {
+            position: fixed;
+            z-index: 9999;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(120deg, #e0e7ff 60%, #f4f6fa 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s;
+        }
+        #splashScreen img {
+            width: 180px;
+            height: 180px;
+            border-radius: 24px;
+            box-shadow: 0 4px 24px #4f8cff33;
+            margin-bottom: 1.5rem;
+            object-fit: cover;
+        }
+        #splashScreen h2 {
+            color: #2d3e50;
+            margin-bottom: 0.5rem;
+        }
+        #splashScreen p {
+            color: #4f8cff;
+            margin-bottom: 2rem;
+        }
+        #openBtn {
+            background: linear-gradient(90deg, #4f8cff 60%, #27ae60 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.9rem 2.2rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px #4f8cff33;
+            transition: background 0.2s, transform 0.2s;
+        }
+        #openBtn:hover {
+            background: linear-gradient(90deg, #27ae60 60%, #4f8cff 100%);
+            transform: scale(1.05);
+        }
+        #mainContent {
+            display: none;
+        }
+        header {
+            background: linear-gradient(90deg, #2d3e50 60%, #4f8cff 100%);
+            color: #fff;
+            padding: 1.5rem 1rem 1rem 1rem;
+            text-align: center;
+            position: relative;
+        }
+        header img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            position: absolute;
+            left: 2rem;
+            top: 1rem;
+            box-shadow: 0 2px 8px #0002;
+            border: 3px solid #fff;
+            background: #fff;
+        }
+        .container {
+            max-width: 950px;
+            margin: 2rem auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px #0002;
+            padding: 2.5rem 2rem 2rem 2rem;
+            border: 2px solid #e0e7ff;
+        }
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+        .controls input, .controls select {
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1.5px solid #4f8cff;
+            background: #f0f8ff;
+            transition: border 0.2s;
+        }
+        .controls input:focus, .controls select:focus {
+            border: 2px solid #2d3e50;
+            outline: none;
+        }
+        .free-counter {
+            font-weight: bold;
+            color: #2d3e50;
+            background: #d0f5d8;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            box-shadow: 0 1px 4px #0001;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: #f8faff;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.85rem;
+            text-align: left;
+            border-bottom: 1.5px solid #e0e7ff;
+        }
+        th {
+            background: linear-gradient(90deg, #e0e7ff 60%, #f0f4fa 100%);
+            color: #2d3e50;
+            font-size: 1.05rem;
+        }
+        tr.selected {
+            background: linear-gradient(90deg, #b2f7ef 60%, #e0e7ff 100%) !important;
+        }
+        tr.free:hover {
+            background: linear-gradient(90deg, #e6f7ff 60%, #d0f5d8 100%);
+            cursor: pointer;
+        }
+        .status-free {
+            color: #27ae60;
+            font-weight: bold;
+            background: #eafaf1;
+            border-radius: 8px;
+            padding: 0.3rem 0.7rem;
+            display: inline-block;
+        }
+        .status-occupied {
+            color: #e74c3c;
+            font-weight: bold;
+            background: #ffeaea;
+            border-radius: 8px;
+            padding: 0.3rem 0.7rem;
+            display: inline-block;
+        }
+        .batch-info {
+            color: #2c3e50;
+            font-size: 0.9rem;
+            padding: 0.4rem 0.6rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        .booked-for-batch {
+            background: linear-gradient(90deg, rgba(255,250,230,0.6), rgba(255,245,230,0.6));
+        }
+        .batch-status {
+            padding: 0.4rem 0.6rem;
+            background: #fff8e6;
+            border-radius: 6px;
+            border: 1px solid #ffe6b3;
+        }
+        
+        #bookingSection {
+            margin-top: 1.5rem;
+            padding: 1.2rem;
+            border: 2px solid #4f8cff;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #f0f8ff 60%, #e0e7ff 100%);
+            display: none;
+            box-shadow: 0 2px 8px #4f8cff22;
+        }
+        #bookingSection p {
+            margin: 0 0 0.5rem 0;
+        }
+        #timerDisplay {
+            font-weight: bold;
+            margin-top: 0.5rem;
+            color: #4f8cff;
+            font-size: 1.1rem;
+        }
+        #bookRoomBtn {
+            background: linear-gradient(90deg, #4f8cff 60%, #27ae60 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            box-shadow: 0 2px 8px #4f8cff33;
+            transition: background 0.2s;
+        }
+        #bookRoomBtn:disabled {
+            background: #ccc;
+            color: #888;
+            cursor: not-allowed;
+        }
+        .edit-btn {
+            background: linear-gradient(90deg, #f9d423 60%, #ff4e50 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.4rem 1rem;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 1px 4px #ff4e5022;
+            transition: background 0.2s;
+        }
+        .edit-btn:disabled {
+            background: #eee;
+            color: #aaa;
+            cursor: not-allowed;
+        }
+        #editModal {
+            z-index: 1000;
+        }
+        #editModal > div {
+            border: 2px solid #4f8cff;
+            background: linear-gradient(120deg, #f0f8ff 60%, #e0e7ff 100%);
+        }
+        #editModal h3 {
+            color: #4f8cff;
+        }
+        #editModal button {
+            margin-right: 0.5rem;
+        }
+        /* Add a little space for the role switch buttons */
+        #roleSwitch {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        #roleSwitch button {
+            background: linear-gradient(90deg, #4f8cff 60%, #27ae60 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.7rem 2rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px #4f8cff33;
+            transition: background 0.2s, transform 0.2s;
+        }
+        #roleSwitch button.active {
+            background: linear-gradient(90deg, #27ae60 60%, #4f8cff 100%);
+            border: 2px solid #2d3e50;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 1rem; }
+            .controls { flex-direction: column; gap: 0.5rem; }
+            th, td { padding: 0.5rem; }
+            header img { left: 1rem; top: 0.5rem; width: 40px; height: 40px; }
+            #splashScreen img { width: 100px; height: 100px; }
+            #loginBox, #signupBox { min-width: 220px; padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<!-- Login/Signup Screen -->
+<div id="loginScreen">
+    <div id="roleSwitch">
+        <button id="studentRoleBtn" class="active">Student Login</button>
+        <button id="facultyRoleBtn">Faculty Login</button>
+    </div>
+    <!-- Student Login/Signup -->
+    <div id="studentLoginBox">
+        <div id="loginBox">
+            <h2>Student Login</h2>
+            <div id="loginError"></div>
+            <label for="enrolment">Enrolment:</label>
+            <input type="text" id="enrolment" autocomplete="username" placeholder="Enter enrolment" />
+            <label for="password">Password:</label>
+            <input type="password" id="password" autocomplete="current-password" placeholder="Enter password" />
+            <button id="loginBtn">Login</button>
+            <button id="showSignupBtn" style="background:#eee;color:#4f8cff;">Sign Up</button>
+        </div>
+        <div id="signupBox" style="display:none;">
+            <h2>Student Sign Up</h2>
+            <div id="signupError"></div>
+            <div id="signupSuccess"></div>
+            <label for="signupEnrolment">Enrolment:</label>
+            <input type="text" id="signupEnrolment" placeholder="Choose enrolment" />
+            <label for="signupPassword">Password:</label>
+            <input type="password" id="signupPassword" placeholder="Choose password" />
+            <button id="signupBtn">Sign Up</button>
+            <button id="showLoginBtn" style="background:#eee;color:#4f8cff;">Back to Login</button>
+        </div>
+    </div>
+    <!-- Faculty Login/Signup -->
+    <div id="facultyLoginBox" style="display:none;">
+        <div id="facultyLogin">
+            <h2>Faculty Login</h2>
+            <div id="facultyLoginError"></div>
+            <label for="facultyId">Faculty ID:</label>
+            <input type="text" id="facultyId" autocomplete="username" placeholder="Enter Faculty ID" />
+            <label for="facultyPassword">Password:</label>
+            <input type="password" id="facultyPassword" autocomplete="current-password" placeholder="Enter password" />
+            <button id="facultyLoginBtn">Login</button>
+            <button id="showFacultySignupBtn" style="background:#eee;color:#4f8cff;">Sign Up</button>
+        </div>
+        <div id="facultySignup" style="display:none;">
+            <h2>Faculty Sign Up</h2>
+            <div id="facultySignupError"></div>
+            <div id="facultySignupSuccess"></div>
+            <label for="facultySignupId">Faculty ID:</label>
+            <input type="text" id="facultySignupId" placeholder="Choose Faculty ID" />
+            <label for="facultySignupPassword">Password:</label>
+            <input type="password" id="facultySignupPassword" placeholder="Choose password" />
+            <button id="facultySignupBtn">Sign Up</button>
+            <button id="showFacultyLoginBtn" style="background:#eee;color:#4f8cff;">Back to Login</button>
+        </div>
+    </div>
+</div>
+<!-- Splash Screen removed: app opens main UI directly after login -->
+<!-- Main Content -->
+<div id="mainContent">
+<header>
+    <img src="https://cdn-icons-png.flaticon.com/512/167/167707.png" alt="Campus Logo" />
+    <h1>Campus Room Finder</h1>
+    <p>Find available classrooms and labs for your group or club!</p>
+</header>
+<div class="container">
+    <div class="controls">
+        <label id="blockFilterLabel">
+            <img src="https://cdn-icons-png.flaticon.com/512/854/854878.png" alt="Block" style="width:22px;vertical-align:middle;margin-right:4px;">
+            Select Block:
+            <select id="blockFilter">
+                <option value="All">All Blocks</option>
+                <option value="Block A">Block A</option>
+                <option value="Block B">Block B</option>
+                <option value="Block C">Block C</option>
+                <option value="Block D">Block D</option>
+            </select>
+        </label>
+        <label id="typeFilterLabel">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Type" style="width:22px;vertical-align:middle;margin-right:4px;">
+            Filter by Type:
+            <select id="typeFilter">
+                <option value="All">All</option>
+                <option value="Classroom">Classroom</option>
+                <option value="Lab">Lab</option>
+            </select>
+        </label>
+        <label>
+            <img src="https://cdn-icons-png.flaticon.com/512/622/622669.png" alt="Search" style="width:22px;vertical-align:middle;margin-right:4px;">
+            Search:
+            <input type="text" id="searchInput" placeholder="Room number..." />
+        </label>
+        <label id="batchFilterLabel" style="display:none;">
+            <img src="https://cdn-icons-png.flaticon.com/512/747/747376.png" alt="Batch" style="width:22px;vertical-align:middle;margin-right:4px;">
+            Select Batch:
+            <select id="batchFilter">
+                <option value="All">Select Batch</option>
+            </select>
+        </label>
+        <span class="free-counter" id="freeCounter">Free Rooms: 0</span>
+        <div id="batchStatus" class="batch-status" style="margin-left:1rem; font-size:0.95rem;color:#333;"></div>
+    </div>
+    <table>
+        <thead>
+            <tr id="tableHeaders">
+                <th><img src="https://cdn-icons-png.flaticon.com/512/609/609803.png" alt="Room" style="width:18px;vertical-align:middle;margin-right:4px;">Room Number</th>
+                <th><img src="https://cdn-icons-png.flaticon.com/512/854/854878.png" alt="Block" style="width:18px;vertical-align:middle;margin-right:4px;">Block</th>
+                <th><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Type" style="width:18px;vertical-align:middle;margin-right:4px;">Type</th>
+                <th><img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" alt="Availability" style="width:18px;vertical-align:middle;margin-right:4px;">Availability</th>
+            </tr>
+        </thead>
+        <tbody id="roomTableBody"></tbody>
+    </table>
+    <!-- Booking Section -->
+    <div id="bookingSection">
+        <p>
+            <img src="https://cdn-icons-png.flaticon.com/512/609/609803.png" alt="Room" style="width:22px;vertical-align:middle;margin-right:4px;">
+            Selected Room: <span id="selectedRoomDisplay"></span>
+        </p>
+        <label>
+            <img src="https://cdn-icons-png.flaticon.com/512/2089/2089797.png" alt="Timer" style="width:22px;vertical-align:middle;margin-right:4px;">
+            Booking Duration (minutes):
+            <input type="number" id="bookingDuration" min="1" max="180" value="30" />
+        </label>
+        <br />
+        <!-- Faculty-only fields -->
+        <div id="facultyBookingFields" style="margin-top: 1rem;">
+            <label>
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Batch" style="width:22px;vertical-align:middle;margin-right:4px;">
+                Batch Number(s):<br>
+                <select id="batchNumberSelect" multiple style="width: 180px; margin-bottom: 0.5rem;">
+                    <option value="01">01</option>
+                    <option value="02">02</option>
+                    <option value="03">03</option>
+                    <option value="04">04</option>
+                    <option value="05">05</option>
+                    <option value="06">06</option>
+                    <option value="07">07</option>
+                    <option value="08">08</option>
+                    <option value="09">09</option>
+                    <option value="10">10</option>
+                </select>
+                <div style="font-size:0.95em;color:#888;">(Hold Ctrl or Cmd to select multiple)</div>
+            </label>
+            <br />
+            <label>
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Subject" style="width:22px;vertical-align:middle;margin-right:4px;">
+                Subject Name:<br>
+                <input type="text" id="subjectNameInput" placeholder="e.g. Python Programming" style="width: 180px;" />
+            </label>
+            <br />
+            <label>
+                <img src="https://cdn-icons-png.flaticon.com/512/833/833593.png" alt="Date" style="width:22px;vertical-align:middle;margin-right:4px;">
+                Date:<br>
+                <input type="date" id="bookingDateInput" style="width: 180px;" />
+            </label>
+            <br />
+            <label>
+                <img src="https://cdn-icons-png.flaticon.com/512/2089/2089797.png" alt="Time" style="width:22px;vertical-align:middle;margin-right:4px;">
+                Start Time:<br>
+                <input type="time" id="startTimeInput" style="width: 180px;" />
+            </label>
+            <br />
+            <label>
+                <img src="https://cdn-icons-png.flaticon.com/512/2089/2089797.png" alt="Time" style="width:22px;vertical-align:middle;margin-right:4px;">
+                End Time:<br>
+                <input type="time" id="endTimeInput" style="width: 180px;" />
+            </label>
+            <br />
+        </div>
+        <button id="bookRoomBtn">
+            <img src="https://cdn-icons-png.flaticon.com/512/992/992651.png" alt="Book" style="width:20px;vertical-align:middle;margin-right:4px;">
+            Book Room
+        </button>
+        <p id="timerDisplay"></p>
+    </div>
+</div>
+</div>
+<script>
+    // --- Role Switch Logic ---
+    let currentRole = "student"; // Track current role
+
+    const studentRoleBtn = document.getElementById('studentRoleBtn');
+    const facultyRoleBtn = document.getElementById('facultyRoleBtn');
+    const studentLoginBox = document.getElementById('studentLoginBox');
+    const facultyLoginBox = document.getElementById('facultyLoginBox');
+
+    studentRoleBtn.onclick = function() {
+        currentRole = "student";
+        studentRoleBtn.classList.add('active');
+        facultyRoleBtn.classList.remove('active');
+        studentLoginBox.style.display = 'block';
+        facultyLoginBox.style.display = 'none';
+    };
+    facultyRoleBtn.onclick = function() {
+        currentRole = "faculty";
+        facultyRoleBtn.classList.add('active');
+        studentRoleBtn.classList.remove('active');
+        studentLoginBox.style.display = 'none';
+        facultyLoginBox.style.display = 'block';
+    };
+
+    // --- Student Login/Signup Logic ---
+    const loginScreen = document.getElementById('loginScreen');
+    const splashScreen = document.getElementById('splashScreen');
+    const mainContent = document.getElementById('mainContent');
+    const loginBox = document.getElementById('loginBox');
+    const signupBox = document.getElementById('signupBox');
+    const loginBtn = document.getElementById('loginBtn');
+    const signupBtn = document.getElementById('signupBtn');
+    const showSignupBtn = document.getElementById('showSignupBtn');
+    const showLoginBtn = document.getElementById('showLoginBtn');
+    const enrolmentInput = document.getElementById('enrolment');
+    const passwordInput = document.getElementById('password');
+    const loginError = document.getElementById('loginError');
+    const signupError = document.getElementById('signupError');
+    const signupSuccess = document.getElementById('signupSuccess');
+    const signupEnrolment = document.getElementById('signupEnrolment');
+    const signupPassword = document.getElementById('signupPassword');
+
+    function getStudents() {
+        return JSON.parse(localStorage.getItem("students") || "[]");
+    }
+    function setStudents(students) {
+        localStorage.setItem("students", JSON.stringify(students));
+    }
+    if (!localStorage.getItem("students")) {
+        setStudents([
+            { enrolment: "student1", password: "pass123" },
+            { enrolment: "student2", password: "abc456" },
+            { enrolment: "student3", password: "qwerty" }
+        ]);
+    }
+    function checkLogin(enrolment, password) {
+        return getStudents().some(
+            s => s.enrolment === enrolment && s.password === password
+        );
+    }
+    loginBtn.onclick = function() {
+        const enrolment = enrolmentInput.value.trim();
+        const password = passwordInput.value;
+        if (checkLogin(enrolment, password)) {
+            currentRole = "student";
+            loginScreen.style.opacity = 0;
+            setTimeout(() => {
+                loginScreen.style.display = "none";
+                mainContent.style.display = "block";
+                // Initialize batch filter for students
+                if (batchFilter) {
+                    populateBatchFilter();
+                    const savedBatch = localStorage.getItem('selectedBatch');
+                    if (savedBatch) {
+                        batchFilter.value = savedBatch;
+                    } else {
+                        batchFilter.value = 'All';
+                    }
+                }
+                // Make batch filter visible for students
+                const batchFilterLabel = document.getElementById("batchFilterLabel");
+                if (batchFilterLabel) {
+                    batchFilterLabel.style.display = "block";
+                }
+                renderRooms();
+                updateBookingSection();
+                startMainApp();
+            }, 400);
+        } else {
+            loginError.textContent = "Invalid enrolment or password.";
+            loginError.style.display = "block";
+        }
+    };
+    [enrolmentInput, passwordInput].forEach(input => {
+        input.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") loginBtn.click();
+        });
+    });
+    showSignupBtn.onclick = function() {
+        loginBox.style.display = "none";
+        signupBox.style.display = "flex";
+        loginError.style.display = "none";
+        signupError.style.display = "none";
+        signupSuccess.style.display = "none";
+        signupEnrolment.value = "";
+        signupPassword.value = "";
+    };
+    showLoginBtn.onclick = function() {
+        signupBox.style.display = "none";
+        loginBox.style.display = "flex";
+        loginError.style.display = "none";
+        signupError.style.display = "none";
+        signupSuccess.style.display = "none";
+    };
+    signupBtn.onclick = function() {
+        const enrolment = signupEnrolment.value.trim();
+        const password = signupPassword.value;
+        if (!enrolment || !password) {
+            signupError.textContent = "Please fill all fields.";
+            signupError.style.display = "block";
+            signupSuccess.style.display = "none";
+            return;
+        }
+        let students = getStudents();
+        if (students.some(s => s.enrolment === enrolment)) {
+            signupError.textContent = "Enrolment already exists.";
+            signupError.style.display = "block";
+            signupSuccess.style.display = "none";
+            return;
+        }
+        students.push({ enrolment, password });
+        setStudents(students);
+        signupError.style.display = "none";
+        signupSuccess.textContent = "Sign up successful! You can now log in.";
+        signupSuccess.style.display = "block";
+        setTimeout(() => {
+            signupBox.style.display = "none";
+            loginBox.style.display = "flex";
+        }, 1200);
+    };
+
+    // --- Faculty Login/Signup Logic ---
+    const facultyLogin = document.getElementById('facultyLogin');
+    const facultySignup = document.getElementById('facultySignup');
+    const facultyLoginBtn = document.getElementById('facultyLoginBtn');
+    const showFacultySignupBtn = document.getElementById('showFacultySignupBtn');
+    const showFacultyLoginBtn = document.getElementById('showFacultyLoginBtn');
+    const facultyIdInput = document.getElementById('facultyId');
+    const facultyPasswordInput = document.getElementById('facultyPassword');
+    const facultyLoginError = document.getElementById('facultyLoginError');
+    const facultySignupError = document.getElementById('facultySignupError');
+    const facultySignupSuccess = document.getElementById('facultySignupSuccess');
+    const facultySignupId = document.getElementById('facultySignupId');
+    const facultySignupPassword = document.getElementById('facultySignupPassword');
+
+    function getFaculty() {
+        return JSON.parse(localStorage.getItem("faculty") || "[]");
+    }
+    function setFaculty(faculty) {
+        localStorage.setItem("faculty", JSON.stringify(faculty));
+    }
+    if (!localStorage.getItem("faculty")) {
+        setFaculty([
+            { facultyId: "faculty1", password: "fac123" },
+            { facultyId: "faculty2", password: "fac456" }
+        ]);
+    }
+    function checkFacultyLogin(facultyId, password) {
+        return getFaculty().some(
+            f => f.facultyId === facultyId && f.password === password
+        );
+    }
+    facultyLoginBtn.onclick = function() {
+        const facultyId = facultyIdInput.value.trim();
+        const password = facultyPasswordInput.value;
+        if (checkFacultyLogin(facultyId, password)) {
+            currentRole = "faculty";
+            currentFacultyId = facultyId; // Store the logged-in faculty ID
+            loginScreen.style.opacity = 0;
+            setTimeout(() => {
+                loginScreen.style.display = "none";
+                mainContent.style.display = "block";
+                renderRooms();
+                updateBookingSection();
+                startMainApp();
+            }, 400);
+        } else {
+            facultyLoginError.textContent = "Invalid Faculty ID or password.";
+            facultyLoginError.style.display = "block";
+        }
+    };
+    [facultyIdInput, facultyPasswordInput].forEach(input => {
+        input.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") facultyLoginBtn.click();
+        });
+    });
+    showFacultySignupBtn.onclick = function() {
+        facultyLogin.style.display = "none";
+        facultySignup.style.display = "flex";
+        facultyLoginError.style.display = "none";
+        facultySignupError.style.display = "none";
+        facultySignupSuccess.style.display = "none";
+        facultySignupId.value = "";
+        facultySignupPassword.value = "";
+    };
+    showFacultyLoginBtn.onclick = function() {
+        facultySignup.style.display = "none";
+        facultyLogin.style.display = "flex";
+        facultyLoginError.style.display = "none";
+        facultySignupError.style.display = "none";
+        facultySignupSuccess.style.display = "none";
+    };
+    document.getElementById('facultySignupBtn').onclick = function() {
+        const facultyId = facultySignupId.value.trim();
+        const password = facultySignupPassword.value;
+        if (!facultyId || !password) {
+            facultySignupError.textContent = "Please fill all fields.";
+            facultySignupError.style.display = "block";
+            facultySignupSuccess.style.display = "none";
+            return;
+        }
+        let faculty = getFaculty();
+        if (faculty.some(f => f.facultyId === facultyId)) {
+            facultySignupError.textContent = "Faculty ID already exists.";
+            facultySignupError.style.display = "block";
+            facultySignupSuccess.style.display = "none";
+            return;
+        }
+        faculty.push({ facultyId, password });
+        setFaculty(faculty);
+        facultySignupError.style.display = "none";
+        facultySignupSuccess.textContent = "Sign up successful! You can now log in.";
+        facultySignupSuccess.style.display = "block";
+        setTimeout(() => {
+            facultySignup.style.display = "none";
+            facultyLogin.style.display = "flex";
+        }, 1200);
+    };
+
+    // --- Main App Logic (modified for role-based UI) ---
+    const rooms = [
+        // Block A
+        { number: "C101", block: "Block A", type: "Classroom", available: true },
+        { number: "C102", block: "Block A", type: "Classroom", available: false },
+        { number: "C103", block: "Block A", type: "Classroom", available: true },
+        { number: "C104", block: "Block A", type: "Classroom", available: true },
+        { number: "C105", block: "Block A", type: "Classroom", available: true },
+        { number: "L106", block: "Block A", type: "Lab", available: true },
+        { number: "L107", block: "Block A", type: "Lab", available: false },
+        { number: "L108", block: "Block A", type: "Lab", available: true },
+        { number: "L109", block: "Block A", type: "Lab", available: true },
+        { number: "L110", block: "Block A", type: "Lab", available: true },
+        // Block B
+        { number: "C201", block: "Block B", type: "Classroom", available: true },
+        { number: "C202", block: "Block B", type: "Classroom", available: true },
+        { number: "C203", block: "Block B", type: "Classroom", available: false },
+        { number: "C204", block: "Block B", type: "Classroom", available: true },
+        { number: "C205", block: "Block B", type: "Classroom", available: true },
+        { number: "L206", block: "Block B", type: "Lab", available: true },
+        { number: "L207", block: "Block B", type: "Lab", available: true },
+        { number: "L208", block: "Block B", type: "Lab", available: false },
+        { number: "L209", block: "Block B", type: "Lab", available: true },
+        { number: "L210", block: "Block B", type: "Lab", available: true },
+        // Block C
+        { number: "C301", block: "Block C", type: "Classroom", available: true },
+        { number: "C302", block: "Block C", type: "Classroom", available: false },
+        { number: "C303", block: "Block C", type: "Classroom", available: true },
+        { number: "C304", block: "Block C", type: "Classroom", available: true },
+        { number: "C305", block: "Block C", type: "Classroom", available: true },
+        { number: "L306", block: "Block C", type: "Lab", available: true },
+        { number: "L307", block: "Block C", type: "Lab", available: true },
+        { number: "L308", block: "Block C", type: "Lab", available: false },
+        { number: "L309", block: "Block C", type: "Lab", available: true },
+        { number: "L310", block: "Block C", type: "Lab", available: true },
+        // Block D
+        { number: "C401", block: "Block D", type: "Classroom", available: true },
+        { number: "C402", block: "Block D", type: "Classroom", available: true },
+        { number: "C403", block: "Block D", type: "Classroom", available: false },
+        { number: "C404", block: "Block D", type: "Classroom", available: true },
+        { number: "C405", block: "Block D", type: "Classroom", available: true },
+        { number: "L406", block: "Block D", type: "Lab", available: true },
+        { number: "L407", block: "Block D", type: "Lab", available: true },
+        { number: "L408", block: "Block D", type: "Lab", available: false },
+        { number: "L409", block: "Block D", type: "Lab", available: true },
+        { number: "L410", block: "Block D", type: "Lab", available: true }
+    ];
+
+    const roomTableBody = document.getElementById("roomTableBody");
+    const blockFilter = document.getElementById("blockFilter");
+    const typeFilter = document.getElementById("typeFilter");
+    const searchInput = document.getElementById("searchInput");
+    const batchFilter = document.getElementById("batchFilter");
+    const freeCounter = document.getElementById("freeCounter");
+    const bookingSection = document.getElementById("bookingSection");
+    const selectedRoomDisplay = document.getElementById("selectedRoomDisplay");
+    const bookRoomBtn = document.getElementById("bookRoomBtn");
+    const bookingDurationInput = document.getElementById("bookingDuration");
+    const timerDisplay = document.getElementById("timerDisplay");
+
+    let selectedRoomNumber = localStorage.getItem("selectedRoom") || null;
+    let timerInterval = null;
+    let currentFacultyId = null; // Store current logged-in faculty ID
+
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+
+    // Populate the batch select based on current bookings
+    function populateBatchFilter() {
+        if (!batchFilter) return;
+        // Populate with fixed batch numbers 01 to 10
+        let html = '<option value="All">Select Batch</option>';
+        for (let i = 1; i <= 10; i++) {
+            const batchNum = String(i).padStart(2, '0');
+            html += `<option value="${batchNum}">${batchNum}</option>`;
+        }
+        batchFilter.innerHTML = html;
+        // For students, default to "All" (which shows the prompt message)
+        if (currentRole === "student") {
+            batchFilter.value = 'All';
+            localStorage.setItem('selectedBatch', 'All');
+        }
+    }
+
+    if (batchFilter) {
+        batchFilter.addEventListener('change', function() {
+            localStorage.setItem('selectedBatch', batchFilter.value);
+            renderRooms();
+            updateBatchStatus();
+        });
+    }
+
+    function formatTimeLeft(ms) {
+        if (ms <= 0) return "Expired";
+        const minutes = Math.floor(ms / 60000);
+        const seconds = Math.floor((ms % 60000) / 1000);
+        return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    }
+
+    // Format date from YYYY-MM-DD to readable format (e.g., "12 Nov 2025")
+    function formatDate(dateStr) {
+        if (!dateStr) return "N/A";
+        const date = new Date(dateStr + 'T00:00:00');
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    }
+
+    // Format time from HH:MM to readable format (e.g., "10 AM" or "2 PM")
+    function formatTime(timeStr) {
+        if (!timeStr) return "N/A";
+        const [hours, minutes] = timeStr.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        return `${hour12}:${minutes} ${ampm}`;
+    }
+
+    // Format time range (e.g., "10 AM - 12 PM")
+    function formatTimeRange(startTime, endTime) {
+        return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+    }
+
+    function updateRoomsAvailabilityFromBookings() {
+        const now = Date.now();
+        
+        rooms.forEach(room => {
+            const bookingData = bookings[room.number];
+            
+            if (!bookingData) {
+                // No booking for this room - it's free
+                room.available = true;
+            } else {
+                // Check if booking has expired
+                const endTime = typeof bookingData === 'number' ? bookingData : bookingData?.endTime;
+                
+                if (endTime && endTime > now) {
+                    // Booking is still active - room is occupied
+                    room.available = false;
+                } else {
+                    // Booking has expired - room is free
+                    room.available = true;
+                }
+            }
+        });
+    }
+
+    // Update the batch status message shown to students
+    // This function displays ALL classes booked by faculty for the selected batch number
+    function updateBatchStatus() {
+        const batchStatus = document.getElementById('batchStatus');
+        if (!batchStatus || !batchFilter || currentRole !== 'student') return;
+        const sel = batchFilter.value || 'All';
+        if (sel === 'All') {
+            batchStatus.innerHTML = '<strong style="color:#4f8cff;">Please select a batch number to view classes</strong>';
+            return;
+        }
+        const now = Date.now();
+        const selStr = String(sel); // Ensure string comparison
+        const roomsForBatch = [];
+        // Scan ALL bookings to find classes for the selected batch
+        for (const [roomNum, bd] of Object.entries(bookings)) {
+            if (!bd || typeof bd !== 'object') continue;
+            // Only show bookings made by faculty
+            if (bd.bookedBy !== 'faculty') continue;
+            
+            // Check if batch numbers array exists and includes the selected batch
+            if (!Array.isArray(bd.batchNumbers) || bd.batchNumbers.length === 0) continue;
+            
+            // Convert all batch numbers to strings for comparison
+            const batchNumbersStr = bd.batchNumbers.map(b => String(b));
+            if (!batchNumbersStr.includes(selStr)) continue;
+            
+            const endTime = bd.endTime;
+            if (!endTime) continue;
+            
+            // Show bookings that haven't expired (including future bookings)
+            // Use same logic as renderRooms - show if not expired more than 1 hour ago
+            const oneHourInMs = 60 * 60 * 1000;
+            if (endTime < (now - oneHourInMs)) continue; // expired more than 1 hour ago
+            
+            // Find the room details
+            const room = rooms.find(r => r.number === roomNum);
+            const date = formatDate(bd.bookingDate);
+            const timeRange = bd.startTime && bd.endTimeDisplay ? formatTimeRange(bd.startTime, bd.endTimeDisplay) : 'N/A';
+            const faculty = bd.facultyName || 'Unknown Faculty';
+            
+            roomsForBatch.push({ 
+                room: roomNum, 
+                block: room ? room.block : 'N/A',
+                type: room ? room.type : 'N/A',
+                subject: bd.subjectName || 'N/A',
+                date: date,
+                time: timeRange,
+                faculty: faculty,
+                until: formatTimeLeft(endTime - now) 
+            });
+        }
+        if (roomsForBatch.length === 0) {
+            batchStatus.innerHTML = `<strong style="color:#e74c3c;">No classes are booked for batch ${sel}</strong>`;
+        } else {
+            // Display all classes with full details
+            const list = roomsForBatch.map(r => 
+                `<strong>${r.room}</strong> - ${r.subject}<br>
+                📅 ${r.date} | ⏰ ${r.time} | 👨‍🏫 ${r.faculty}`
+            ).join('<br><br>');
+            batchStatus.innerHTML = `<strong style="color:#27ae60;">All Classes for Batch ${sel} (${roomsForBatch.length} total):</strong><br><br>${list}`;
+        }
+    }
+
+    
+
+    function renderRooms() {
+        // Reload bookings from localStorage to ensure we have the latest data
+        bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+        
+        // Ensure batch filter is populated from current bookings
+        populateBatchFilter();
+        updateRoomsAvailabilityFromBookings();
+        updateBatchStatus();
+
+        const filterBlock = blockFilter.value;
+        const filterType = typeFilter.value;
+        const search = searchInput.value.trim().toLowerCase();
+        const selectedBatch = batchFilter ? batchFilter.value : 'All';
+
+        let filteredRooms = [];
+
+        // For students: if no batch selected, show full room list with availability; otherwise show only classes booked for that batch
+        if (currentRole === "student") {
+            if (selectedBatch === 'All') {
+                // Show all rooms (apply block/type/search filters like faculty)
+                filteredRooms = rooms.filter(room => {
+                    if (filterBlock !== "All" && room.block !== filterBlock) return false;
+                    if (filterType !== "All" && room.type !== filterType) return false;
+                    if (search) {
+                        const inNumber = room.number.toLowerCase().includes(search);
+                        if (!inNumber) return false;
+                    }
+                    return true;
+                });
+            } else {
+                // Show only rooms booked for the selected batch by faculty
+                const now = Date.now();
+                const selectedBatchStr = String(selectedBatch);
+                const roomsWithBatchBookings = rooms.filter(room => {
+                    const bookingData = bookings[room.number];
+                    if (!bookingData || typeof bookingData !== 'object') return false;
+                    if (bookingData.bookedBy !== 'faculty') return false;
+                    if (!Array.isArray(bookingData.batchNumbers) || bookingData.batchNumbers.length === 0) return false;
+                    const batchNumbersStr = bookingData.batchNumbers.map(b => String(b));
+                    if (!batchNumbersStr.includes(selectedBatchStr)) return false;
+                    const endTime = bookingData.endTime;
+                    if (!endTime) return false;
+                    const oneHourInMs = 60 * 60 * 1000;
+                    if (endTime < (now - oneHourInMs)) return false;
+                    return true;
+                });
+                // Apply only search filter for students
+                filteredRooms = roomsWithBatchBookings.filter(room => {
+                    if (search) {
+                        const inNumber = room.number.toLowerCase().includes(search);
+                        if (!inNumber) return false;
+                    }
+                    return true;
+                });
+            }
+        } else {
+            // For faculty, apply normal filters
+            filteredRooms = rooms.filter(room => {
+                if (filterBlock !== "All" && room.block !== filterBlock) return false;
+                if (filterType !== "All" && room.type !== filterType) return false;
+                if (search) {
+                    const inNumber = room.number.toLowerCase().includes(search);
+                    if (!inNumber) return false;
+                }
+                return true;
+            });
+        }
+
+        const freeRooms = filteredRooms.filter(room => room.available);
+        // For students, show total classes booked for their batch
+        if (currentRole === "student" && selectedBatch !== 'All') {
+            const totalClasses = filteredRooms.length;
+            freeCounter.textContent = `📚 Total Classes for Batch ${selectedBatch}: ${totalClasses}`;
+            freeCounter.style.background = totalClasses > 0 ? "#d0f5d8" : "#ffeaea";
+            freeCounter.style.color = totalClasses > 0 ? "#27ae60" : "#e74c3c";
+        } else {
+            freeCounter.textContent = `Free Rooms: ${freeRooms.length}`;
+            freeCounter.style.background = "#d0f5d8";
+            freeCounter.style.color = "#2d3e50";
+        }
+
+        // Update table headers based on role
+        const tableHeaders = document.getElementById('tableHeaders');
+        if (currentRole === "student" && selectedBatch !== 'All') {
+            // Student view with detailed booking information
+            tableHeaders.innerHTML = `
+                <th><img src="https://cdn-icons-png.flaticon.com/512/609/609803.png" alt="Room" style="width:18px;vertical-align:middle;margin-right:4px;">Room Number</th>
+                <th><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Subject" style="width:18px;vertical-align:middle;margin-right:4px;">Subject/Class</th>
+                <th><img src="https://cdn-icons-png.flaticon.com/512/833/833593.png" alt="Date" style="width:18px;vertical-align:middle;margin-right:4px;">Date</th>
+                <th><img src="https://cdn-icons-png.flaticon.com/512/2089/2089797.png" alt="Time" style="width:18px;vertical-align:middle;margin-right:4px;">Time</th>
+                <th><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Faculty" style="width:18px;vertical-align:middle;margin-right:4px;">Faculty</th>
+                <th><img src="https://cdn-icons-png.flaticon.com/512/747/747376.png" alt="Batch" style="width:18px;vertical-align:middle;margin-right:4px;">Batch</th>
+            `;
+        } else {
+            // Faculty view with standard headers
+            tableHeaders.innerHTML = `
+                <th><img src="https://cdn-icons-png.flaticon.com/512/609/609803.png" alt="Room" style="width:18px;vertical-align:middle;margin-right:4px;">Room Number</th>
+                <th><img src="https://cdn-icons-png.flaticon.com/512/854/854878.png" alt="Block" style="width:18px;vertical-align:middle;margin-right:4px;">Block</th>
+                <th><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Type" style="width:18px;vertical-align:middle;margin-right:4px;">Type</th>
+                <th><img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" alt="Availability" style="width:18px;vertical-align:middle;margin-right:4px;">Availability</th>
+            `;
+        }
+
+        roomTableBody.innerHTML = "";
+        
+        // If student selected a batch and no classes are booked, show message
+        if (currentRole === "student" && selectedBatch !== 'All' && filteredRooms.length === 0) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td colspan="6" style="text-align:center; padding:3rem; color:#e74c3c; font-size:1.2rem; font-weight:bold;">
+                <div style="margin-bottom:1rem;">📋 No Classes Found</div>
+                <div style="font-size:1rem; color:#666; font-weight:normal;">No classes have been booked for batch ${selectedBatch} yet. Check back later or contact your faculty.</div>
+            </td>`;
+            roomTableBody.appendChild(tr);
+            return;
+        }
+        
+        // For students viewing batch bookings, show detailed information
+        if (currentRole === "student" && selectedBatch !== 'All') {
+            // Sort rooms by booking date and time (earliest first)
+            const sortedRooms = filteredRooms.map(room => {
+                const bookingData = bookings[room.number];
+                if (!bookingData || typeof bookingData !== 'object') return null;
+                
+                // Create a sort key from booking date and start time
+                const dateStr = bookingData.bookingDate || '';
+                const timeStr = bookingData.startTime || '';
+                const sortKey = dateStr && timeStr ? `${dateStr}T${timeStr}` : '9999-12-31T23:59';
+                
+                return {
+                    room: room,
+                    bookingData: bookingData,
+                    sortKey: sortKey
+                };
+            }).filter(item => item !== null);
+            
+            // Sort by date and time
+            sortedRooms.sort((a, b) => {
+                if (a.sortKey < b.sortKey) return -1;
+                if (a.sortKey > b.sortKey) return 1;
+                return 0;
+            });
+            
+            // Display sorted rooms
+            sortedRooms.forEach(item => {
+                const room = item.room;
+                const bookingData = item.bookingData;
+                
+                const tr = document.createElement("tr");
+                tr.style.background = "linear-gradient(90deg, rgba(240,248,255,0.6), rgba(224,231,255,0.6))";
+                tr.style.borderBottom = "2px solid #e0e7ff";
+                
+                const subject = bookingData.subjectName || 'N/A';
+                const date = formatDate(bookingData.bookingDate);
+                const timeRange = formatTimeRange(bookingData.startTime, bookingData.endTimeDisplay);
+                const faculty = bookingData.facultyName || 'Unknown Faculty';
+                const batches = bookingData.batchNumbers ? bookingData.batchNumbers.join(', ') : 'N/A';
+                
+                // Check if this is a future booking
+                const now = Date.now();
+                const isFuture = bookingData.endTime && bookingData.endTime > now;
+                const statusBadge = isFuture ? '<span style="color:#27ae60; font-size:0.85em;">● Upcoming</span>' : '';
+                
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:#2d3e50;">${room.number}<br>${statusBadge}</td>
+                    <td style="color:#4f8cff; font-weight:500;">${subject}</td>
+                    <td style="color:#2c3e50;">${date}</td>
+                    <td style="color:#27ae60; font-weight:500;">${timeRange}</td>
+                    <td style="color:#2d3e50;">${faculty}</td>
+                    <td><span class="batch-info">${batches}</span></td>
+                `;
+                
+                roomTableBody.appendChild(tr);
+            });
+        } else {
+            // Faculty view - standard room display
+            filteredRooms.forEach(room => {
+                const tr = document.createElement("tr");
+                tr.className = room.available ? "free" : "";
+                if (room.available && room.number === selectedRoomNumber) {
+                    tr.classList.add("selected");
+                }
+                let availabilityCell = "";
+                let canBook = false;
+                if (room.available) {
+                    availabilityCell = `<td class="status-free">Free</td>`;
+                    canBook = true;
+                } else {
+                    const bookingData = bookings[room.number];
+                    const endTime = typeof bookingData === 'number' ? bookingData : bookingData?.endTime;
+                    const now = Date.now();
+                    const timeLeft = endTime ? formatTimeLeft(endTime - now) : "Expired";
+                    if (!endTime || endTime <= now) {
+                        availabilityCell = `<td class="status-free">Expired</td>`;
+                        canBook = true;
+                    } else {
+                        // Show faculty booking details if available
+                        if (bookingData && typeof bookingData === 'object' && bookingData.bookedBy === 'faculty') {
+                            const batches = bookingData.batchNumbers ? bookingData.batchNumbers.join(', ') : 'N/A';
+                            const subject = bookingData.subjectName || 'N/A';
+                            availabilityCell = `<td class="status-occupied">Occupied by Faculty (${timeLeft})<br><small>Subject: ${subject}, Batches: ${batches}</small></td>`;
+                        } else {
+                            availabilityCell = `<td class="status-occupied">Occupied (${timeLeft})</td>`;
+                        }
+                    }
+                }
+
+                tr.innerHTML = `
+                    <td>${room.number}</td>
+                    <td>${room.block}</td>
+                    <td>${room.type}</td>
+                    ${availabilityCell}
+                `;
+
+                // Only allow booking selection for faculty
+                if (currentRole === "faculty" && canBook) {
+                    tr.addEventListener("click", () => {
+                        selectedRoomNumber = room.number;
+                        localStorage.setItem("selectedRoom", selectedRoomNumber);
+                        renderRooms();
+                        updateBookingSection();
+                    });
+                }
+                roomTableBody.appendChild(tr);
+            });
+        }
+
+        // Edit buttons have been removed from the UI.
+    }
+
+    function updateBookingSection() {
+        updateRoomsAvailabilityFromBookings();
+
+        // Show/hide faculty fields and block/type filters based on role
+        const facultyBookingFields = document.getElementById("facultyBookingFields");
+        const blockFilterLabel = document.getElementById("blockFilterLabel");
+        const typeFilterLabel = document.getElementById("typeFilterLabel");
+        const batchFilterLabel = document.getElementById("batchFilterLabel");
+        if (currentRole === "faculty") {
+            facultyBookingFields.style.display = "block";
+            if (blockFilterLabel) blockFilterLabel.style.display = "block";
+            if (typeFilterLabel) typeFilterLabel.style.display = "block";
+            if (batchFilterLabel) batchFilterLabel.style.display = "none"; // faculty doesn't need student batch selector
+        } else {
+            facultyBookingFields.style.display = "none";
+            if (blockFilterLabel) blockFilterLabel.style.display = "none";
+            if (typeFilterLabel) typeFilterLabel.style.display = "none";
+            if (batchFilterLabel) batchFilterLabel.style.display = "block"; // show batch selector to students
+        }
+        // Availability panel removed from UI
+
+        if (currentRole === "student") {
+            bookingSection.style.display = "none";
+            timerDisplay.textContent = "";
+            clearInterval(timerInterval);
+            return;
+        }
+
+        if (selectedRoomNumber) {
+            const room = rooms.find(r => r.number === selectedRoomNumber);
+            if (room && room.available) {
+                bookingSection.style.display = "block";
+                selectedRoomDisplay.textContent = `${room.number} (${room.type}, ${room.block})`;
+                bookRoomBtn.disabled = false;
+                bookingDurationInput.disabled = false;
+                timerDisplay.textContent = "";
+                
+                // Set default date to today for faculty bookings
+                if (currentRole === "faculty") {
+                    const today = new Date().toISOString().split('T')[0];
+                    const dateInput = document.getElementById("bookingDateInput");
+                    if (dateInput && !dateInput.value) {
+                        dateInput.value = today;
+                    }
+                }
+
+                clearInterval(timerInterval);
+            } else if (room && !room.available) {
+                bookingSection.style.display = "block";
+                selectedRoomDisplay.textContent = `${room.number} (${room.type}, ${room.block})`;
+                bookRoomBtn.disabled = true;
+                bookingDurationInput.disabled = true;
+                startCountdown(room.number);
+            } else {
+                bookingSection.style.display = "none";
+                selectedRoomNumber = null;
+                localStorage.removeItem("selectedRoom");
+            }
+        } else {
+            bookingSection.style.display = "none";
+            timerDisplay.textContent = "";
+            clearInterval(timerInterval);
+        }
+    }
+
+    function startCountdown(roomNumber) {
+        clearInterval(timerInterval);
+
+        const bookingData = bookings[roomNumber];
+        const endTime = typeof bookingData === 'number' ? bookingData : bookingData?.endTime;
+        if (!endTime) {
+            timerDisplay.textContent = "";
+            return;
+        }
+
+        function updateTimer() {
+            const now = Date.now();
+            const diff = endTime - now;
+            if (diff <= 0) {
+                timerDisplay.textContent = "Booking time expired. Room is now free.";
+                const room = rooms.find(r => r.number === roomNumber);
+                if (room) room.available = true;
+                delete bookings[roomNumber];
+                localStorage.setItem("bookings", JSON.stringify(bookings));
+                selectedRoomNumber = null;
+                localStorage.removeItem("selectedRoom");
+                renderRooms();
+                updateBookingSection();
+                clearInterval(timerInterval);
+            } else {
+                timerDisplay.textContent = `Time left: ${formatTimeLeft(diff)}`;
+            }
+        }
+
+        updateTimer();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function startMainApp() {
+        // Initialize batch filter when app starts
+        if (currentRole === "student" && batchFilter) {
+            populateBatchFilter();
+            // Restore previously selected batch if any
+            const savedBatch = localStorage.getItem('selectedBatch');
+            if (savedBatch) {
+                batchFilter.value = savedBatch;
+            } else {
+                batchFilter.value = 'All';
+            }
+            // Ensure batch filter is visible for students
+            const batchFilterLabel = document.getElementById("batchFilterLabel");
+            if (batchFilterLabel) {
+                batchFilterLabel.style.display = "block";
+            }
+        }
+        renderRooms();
+        updateBookingSection();
+
+        blockFilter.addEventListener("change", () => {
+            renderRooms();
+            updateBookingSection();
+        });
+        typeFilter.addEventListener("change", () => {
+            renderRooms();
+            updateBookingSection();
+        });
+        searchInput.addEventListener("input", () => {
+            renderRooms();
+            updateBookingSection();
+        });
+        bookRoomBtn.addEventListener("click", () => {
+            if (selectedRoomNumber) {
+                const duration = parseInt(bookingDurationInput.value, 10);
+                if (duration && duration > 0) {
+                    // Validate faculty fields if faculty is logged in
+                    if (currentRole === "faculty") {
+                        const batchNumbers = Array.from(document.getElementById("batchNumberSelect").selectedOptions).map(option => option.value);
+                        const subjectName = document.getElementById("subjectNameInput").value.trim();
+                        const bookingDate = document.getElementById("bookingDateInput").value;
+                        const startTime = document.getElementById("startTimeInput").value;
+                        const endTime = document.getElementById("endTimeInput").value;
+                        
+                        if (batchNumbers.length === 0) {
+                            alert("Please select at least one batch number.");
+                            return;
+                        }
+                        
+                        if (!subjectName) {
+                            alert("Please enter a subject name.");
+                            return;
+                        }
+                        
+                        if (!bookingDate) {
+                            alert("Please select a date.");
+                            return;
+                        }
+                        
+                        if (!startTime || !endTime) {
+                            alert("Please select both start and end times.");
+                            return;
+                        }
+                        
+                        // Calculate endTime timestamp for timer functionality
+                        const dateTimeStr = `${bookingDate}T${endTime}`;
+                        const endTimeTimestamp = new Date(dateTimeStr).getTime();
+                        const now = Date.now();
+                        
+                        // Store faculty booking data with all details
+                        // Ensure batch numbers are stored as strings for consistent comparison
+                        const batchNumbersStr = batchNumbers.map(b => String(b));
+                        bookings[selectedRoomNumber] = {
+                            endTime: endTimeTimestamp,
+                            batchNumbers: batchNumbersStr,
+                            subjectName: subjectName,
+                            bookedBy: "faculty",
+                            facultyName: currentFacultyId || "Unknown Faculty",
+                            bookingDate: bookingDate,
+                            startTime: startTime,
+                            endTimeDisplay: endTime
+                        };
+                    } else {
+                        // Student booking (simple format for backward compatibility)
+                        const now = Date.now();
+                        const endTime = now + duration * 60000;
+                        bookings[selectedRoomNumber] = endTime;
+                    }
+                    
+                    localStorage.setItem("bookings", JSON.stringify(bookings));
+                    renderRooms();
+                    updateBookingSection();
+                    
+                    // Show success message for faculty
+                    if (currentRole === "faculty") {
+                        alert("Room booked successfully!");
+                    }
+                }
+            }
+        });
+
+        setInterval(() => {
+            renderRooms();
+        }, 1000);
+    }
+
+</script>
+</body>
+</html>
