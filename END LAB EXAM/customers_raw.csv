@@ -1,0 +1,11 @@
+customer_id,first_name,last_name,email,phone,address,city,account_balance
+1,Alice,Smith,ALICE@example.com,(555) 123-4567,123 Main St,New York,1000.50
+2,Bob,Jones,bob@example.com,1-555-234-5678,456 Oak Ave,Los Angeles,2500.00
+3,Carol,,carol@example.com,555.345.6789,789 Pine Rd,Chicago,
+4,,Davis,davis@example.com,,321 Elm St,Houston,500.25
+5,Eve,Miller,eve@example.com,+44 20 7946 0958,654 Maple Dr,London,7500.75
+6,Alice,Smith,alice@example.com,5551234567,123 Main St,New York,1000.50
+7,Frank,Brown,frank@example.com,(555) 987-6543,987 Cedar Ln,Phoenix,3200.00
+8,Grace,Wilson,grace@example.com,555-111-2222,,Philadelphia,1500.00
+9,Henry,Taylor,henry@example.com,1-800-555-1234,147 Birch Way,San Antonio,
+10,,Anderson,,12345,258 Spruce Ct,,900.00
